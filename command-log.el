@@ -5,7 +5,7 @@
 ;; Author: berquerant
 ;; Maintainer: berquerant
 ;; Created: 2 Apr 2022
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Keywords: command log
 ;; URL: https://github.com/berquerant/emacs-command-log
 
@@ -88,7 +88,7 @@ The format of the histfile is:
                        (command-log--current-timestamp)
                        last-command
                        command-log--command-repeated-count)))
-      (write-region msg nil command-log-histfile t)
+      (write-region msg nil command-log-histfile t 'silent)
       (command-log--clear-command-repeated-count))))
 
 (defun command-log--append-history-hook ()
