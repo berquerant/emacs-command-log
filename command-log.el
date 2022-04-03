@@ -5,7 +5,7 @@
 ;; Author: berquerant
 ;; Maintainer: berquerant
 ;; Created: 2 Apr 2022
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; Keywords: command log
 ;; URL: https://github.com/berquerant/emacs-command-log
 
@@ -70,35 +70,30 @@ The log format is:
 (defun command-log--incr-command-repeated-count ()
   (setq command-log--command-repeated-count (+ 1 command-log--command-repeated-count)))
 
-(defun command-log--update-command-repeated-count ()
-  "Update `command-log--command-repeated-count'.
-If return nil, then the current command is not repeated,
-the count is not updated.
-If return number, then the current command is repeated, the count is updated."
-  (cond ((not last-command) -1)
-        ((command-log--command-repeated?) (command-log--incr-command-repeated-count))
-        (t nil)))
-
 (defun command-log--append-history ()
   "Append the executed command to `command-log-histfile'.
 The format of the histfile is:
   timestamp command repeated-count"
-  (unless (command-log--update-command-repeated-count)
-    (let ((msg (format "%d %s %d\n"
+  (let ((msg (format "%d %s %d\n"
                        (command-log--current-timestamp)
                        last-command
                        command-log--command-repeated-count)))
       (write-region msg nil command-log-histfile t 'silent)
-      (command-log--clear-command-repeated-count))))
+      (command-log--clear-command-repeated-count)))
 
 (defun command-log--append-history-hook ()
+  (cond ((not last-command) nil)
+        ((command-log--command-repeated?) (command-log--incr-command-repeated-count))
+        (t (command-log--append-history))))
+
+(defun command-log--pre-command-hook ()
   (when (command-log--enable?)
-    (command-log--append-history)))
+    (command-log--append-history-hook)))
 
 ;;;###autoload
 (defun command-log-setup ()
   "Setup command-log."
-  (add-hook 'pre-command-hook 'command-log--append-history-hook))
+  (add-hook 'pre-command-hook 'command-log--pre-command-hook))
 
 (provide 'command-log)
 ;;; command-log.el ends here
